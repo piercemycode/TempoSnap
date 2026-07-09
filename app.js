@@ -1,123 +1,89 @@
 /* ==============================
-   TempoSnap – Lógica completa
+   TempoSnap — Lógica completa
    ============================== */
 
 (function () {
     'use strict';
 
-    // ---- Referencias DOM ----
-    const timeDisplay = document.getElementById('timeDisplay');
-    const timeExtra = document.getElementById('timeExtra');
+    // ---- DOM ----
+    const display = document.getElementById('display');
+    const displayExtra = document.getElementById('displayExtra');
     const btnStart = document.getElementById('btnStart');
     const btnLap = document.getElementById('btnLap');
     const btnReset = document.getElementById('btnReset');
-    const lapsBody = document.getElementById('lapsBody');
+    const lapsTbody = document.getElementById('lapsTbody');
     const lapsEmpty = document.getElementById('lapsEmpty');
-    const lapsCount = document.getElementById('lapsCount');
+    const lapsTable = document.getElementById('lapsTable');
+    const lapsBadge = document.getElementById('lapsBadge');
     const colorInput = document.getElementById('colorInput');
     const sizeRange = document.getElementById('sizeRange');
-    const sizeValue = document.getElementById('sizeValue');
+    const sizeVal = document.getElementById('sizeVal');
 
     // Sidebar
     const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const menuToggle = document.getElementById('menuToggle');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
     const navBtns = document.querySelectorAll('.nav-btn');
 
-    // ---- Estado del cronómetro ----
+    // ---- Estado ----
     let startTime = null;
     let accumulated = 0;
     let running = false;
     let intervalId = null;
     let laps = [];
 
-    const STORAGE_KEY = 'temposnap_state';
-    const SETTINGS_KEY = 'temposnap_settings';
+    const STORAGE_KEY = 'temposnap';
+    const SETTINGS_KEY = 'temposnap_cfg';
 
-    // ---- Inicialización ----
+    // ---- Init ----
     function init() {
         loadSettings();
         restoreState();
         bindEvents();
     }
 
-    // ================================================================
-    //  GESTIÓN DEL TIEMPO (formato MM:SS.cc)
-    // ================================================================
-
-    function now() {
-        return performance.now();
-    }
+    // ---- Tiempo ----
+    const now = () => performance.now();
 
     function elapsed() {
-        if (!startTime) return accumulated;
-        return accumulated + (now() - startTime);
+        return startTime ? accumulated + (now() - startTime) : accumulated;
     }
 
-    /**
-     * Formatea como MM:SS.cc (minutos:segundos.centésimas)
-     * Si es >= 1 hora, muestra HH:MM:SS.cc
-     */
-    function formatTime(ms) {
-        const totalMs = Math.max(0, ms);
-        const totalSec = Math.floor(totalMs / 1000);
+    function fmt(ms) {
+        const t = Math.max(0, ms);
+        const totalSec = Math.floor(t / 1000);
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        const c = Math.floor((t % 1000) / 10);
 
-        const hours = Math.floor(totalSec / 3600);
-        const minutes = Math.floor((totalSec % 3600) / 60);
-        const secs = totalSec % 60;
-        const centesimas = Math.floor((totalMs % 1000) / 10);
-
-        let time;
-        if (hours > 0) {
-            time = String(hours).padStart(2, '0') + ':' +
-                   String(minutes).padStart(2, '0') + ':' +
-                   String(secs).padStart(2, '0') + '.' +
-                   String(centesimas).padStart(2, '0');
+        let str;
+        if (h > 0) {
+            str = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(c).padStart(2,'0')}`;
         } else {
-            time = String(minutes).padStart(2, '0') + ':' +
-                   String(secs).padStart(2, '0') + '.' +
-                   String(centesimas).padStart(2, '0');
+            str = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(c).padStart(2,'0')}`;
         }
-
-        return { time, hours, minutes };
+        return { str, h };
     }
 
-    function renderDisplay() {
-        const ms = elapsed();
-        const { time, hours } = formatTime(ms);
-
-        timeDisplay.textContent = time;
-
-        if (hours > 0) {
-            timeExtra.textContent = hours + ' hora' + (hours > 1 ? 's' : '') + ' transcurrida' + (hours > 1 ? 's' : '');
-        } else {
-            timeExtra.textContent = '';
-        }
+    function render() {
+        const { str, h } = fmt(elapsed());
+        display.textContent = str;
+        displayExtra.textContent = h > 0 ? `${h} hora${h > 1 ? 's' : ''} transcurrida${h > 1 ? 's' : ''}` : '';
     }
 
-    function tick() {
-        renderDisplay();
-    }
+    function tick() { render(); }
 
-    // ================================================================
-    //  ACCIONES DEL CRONÓMETRO
-    // ================================================================
-
+    // ---- Acciones ----
     function start() {
         if (running) return;
         running = true;
         startTime = now();
-
         intervalId = setInterval(tick, 16);
-
-        btnStart.textContent = 'Parar';
-        btnStart.classList.remove('btn-start');
-        btnStart.classList.add('btn-stop');
-        btnStart.style.background = '#ff4757';
-        btnStart.style.color = '#fff';
+        btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Parar';
+        btnStart.className = 'btn btn-stop';
         btnLap.disabled = false;
         btnReset.style.display = 'none';
-
         saveState();
     }
 
@@ -128,266 +94,152 @@
         clearInterval(intervalId);
         intervalId = null;
         startTime = null;
-
-        btnStart.textContent = 'Iniciar';
-        btnStart.classList.add('btn-start');
-        btnStart.classList.remove('btn-stop');
-        btnStart.style.background = '';
-        btnStart.style.color = '';
+        btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg> Iniciar';
+        btnStart.className = 'btn btn-primary';
         btnLap.disabled = true;
         btnReset.style.display = accumulated > 0 ? '' : 'none';
-
         saveState();
     }
+
+    function toggle() { running ? stop() : start(); }
 
     function reset() {
         if (running) return;
         accumulated = 0;
         startTime = null;
         laps = [];
-        renderDisplay();
+        render();
         renderLaps();
         saveState();
         btnReset.style.display = 'none';
     }
 
-    function toggleStartStop() {
-        if (running) stop();
-        else start();
-    }
-
-    // ================================================================
-    //  VUELTAS
-    // ================================================================
-
+    // ---- Vueltas ----
     function addLap() {
         if (!running) return;
-
-        const totalMs = elapsed();
-        const prevTotal = laps.length > 0 ? laps[laps.length - 1].totalTime : 0;
-        const lapMs = totalMs - prevTotal;
-
-        laps.push({ lapTime: lapMs, totalTime: totalMs });
+        const total = elapsed();
+        const prev = laps.length ? laps[laps.length - 1].total : 0;
+        laps.push({ lap: total - prev, total });
         renderLaps();
         saveState();
     }
 
     function renderLaps() {
-        lapsBody.innerHTML = '';
-
-        if (laps.length === 0) {
+        if (!laps.length) {
             lapsEmpty.style.display = '';
-            lapsCount.textContent = '0';
+            lapsTable.style.display = 'none';
+            lapsBadge.textContent = '0';
             return;
         }
-
         lapsEmpty.style.display = 'none';
-        lapsCount.textContent = String(laps.length);
+        lapsTable.style.display = '';
+        lapsBadge.textContent = String(laps.length);
 
-        const fragment = document.createDocumentFragment();
-
-        laps.forEach((lap, i) => {
+        lapsTbody.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        laps.forEach((l, i) => {
             const tr = document.createElement('tr');
-
-            const tdIndex = document.createElement('td');
-            tdIndex.textContent = i + 1;
-
-            const tdLap = document.createElement('td');
-            tdLap.textContent = formatTime(lap.lapTime).time;
-            if (i === laps.length - 1) tdLap.classList.add('highlight');
-
-            const tdTotal = document.createElement('td');
-            tdTotal.textContent = formatTime(lap.totalTime).time;
-
-            tr.appendChild(tdIndex);
-            tr.appendChild(tdLap);
-            tr.appendChild(tdTotal);
-            fragment.appendChild(tr);
+            const td1 = document.createElement('td'); td1.textContent = i + 1;
+            const td2 = document.createElement('td'); td2.textContent = fmt(l.lap).str;
+            if (i === laps.length - 1) td2.classList.add('highlight');
+            const td3 = document.createElement('td'); td3.textContent = fmt(l.total).str;
+            tr.append(td1, td2, td3);
+            frag.appendChild(tr);
         });
-
-        lapsBody.appendChild(fragment);
-
-        const scrollContainer = lapsBody.closest('.laps-scroll');
-        if (scrollContainer) {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
+        lapsTbody.appendChild(frag);
     }
 
-    // ================================================================
-    //  CONFIGURACIÓN
-    // ================================================================
-
-    function applyColor(color) {
-        document.documentElement.style.setProperty('--accent', color);
-        timeDisplay.style.color = color;
-        document.querySelector('.sidebar-logo').style.color = color;
-        document.querySelectorAll('.nav-btn.active').forEach(el => {
-            el.style.color = color;
-        });
+    // ---- Config ----
+    function applyColor(c) {
+        document.documentElement.style.setProperty('--accent', c);
+        display.style.color = c;
+        document.querySelector('.logo').style.color = c;
+        document.querySelector('.mobile-logo').style.color = c;
     }
 
-    function applySize(size) {
-        timeDisplay.style.fontSize = size + 'rem';
-        sizeValue.textContent = parseFloat(size).toFixed(1);
+    function applySize(s) {
+        display.style.fontSize = s + 'rem';
+        sizeVal.textContent = s;
     }
 
     function loadSettings() {
         try {
-            const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-            if (!saved) return;
-
-            if (saved.color) {
-                colorInput.value = saved.color;
-                applyColor(saved.color);
-            }
-            if (saved.size) {
-                sizeRange.value = saved.size;
-                applySize(saved.size);
-            }
+            const d = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+            if (!d) return;
+            if (d.color) { colorInput.value = d.color; applyColor(d.color); }
+            if (d.size) { sizeRange.value = d.size; applySize(d.size); }
         } catch (_) {}
     }
 
     function saveSettings() {
-        const data = {
-            color: colorInput.value,
-            size: sizeRange.value
-        };
-        try {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
-        } catch (_) {}
+        try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ color: colorInput.value, size: sizeRange.value })); } catch (_) {}
     }
 
-    // ================================================================
-    //  PERSISTENCIA DE ESTADO
-    // ================================================================
-
+    // ---- Persistencia ----
     function saveState() {
-        const data = {
-            accumulated: running ? elapsed() : accumulated,
-            running: false,
-            laps: laps
-        };
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                accumulated: running ? elapsed() : accumulated,
+                laps
+            }));
         } catch (_) {}
     }
 
     function restoreState() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return;
-            const data = JSON.parse(raw);
-
-            accumulated = data.accumulated || 0;
-            laps = data.laps || [];
-
+            const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (!d) return;
+            accumulated = d.accumulated || 0;
+            laps = d.laps || [];
             running = false;
             startTime = null;
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-
-            btnStart.textContent = 'Iniciar';
-            btnStart.classList.add('btn-start');
-            btnStart.classList.remove('btn-stop');
-            btnStart.style.background = '';
-            btnStart.style.color = '';
+            if (intervalId) { clearInterval(intervalId); intervalId = null; }
+            btnStart.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg> Iniciar';
+            btnStart.className = 'btn btn-primary';
             btnLap.disabled = true;
             btnReset.style.display = accumulated > 0 ? '' : 'none';
-
-            renderDisplay();
+            render();
             renderLaps();
         } catch (_) {}
     }
 
-    // ================================================================
-    //  NAVEGACIÓN ENTRE SECCIONES (Sidebar)
-    // ================================================================
-
-    function switchSection(sectionId) {
-        // Ocultar todas las secciones
+    // ---- Navegación ----
+    function switchSection(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-        // Desactivar todos los botones
-        navBtns.forEach(btn => btn.classList.remove('active'));
-
-        // Activar la sección correspondiente
-        const targetSection = document.getElementById('section-' + sectionId);
-        const targetBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
-
-        if (targetSection) targetSection.classList.add('active');
-        if (targetBtn) targetBtn.classList.add('active');
-
-        // Cerrar sidebar en móvil
+        navBtns.forEach(b => b.classList.remove('active'));
+        const sec = document.getElementById('section-' + id);
+        const btn = document.querySelector(`.nav-btn[data-section="${id}"]`);
+        if (sec) sec.classList.add('active');
+        if (btn) btn.classList.add('active');
         sidebar.classList.remove('open');
         overlay.classList.remove('open');
     }
 
-    // ================================================================
-    //  EVENTOS
-    // ================================================================
-
+    // ---- Eventos ----
     function bindEvents() {
-        // Botones del cronómetro
-        btnStart.addEventListener('click', toggleStartStop);
+        btnStart.addEventListener('click', toggle);
         btnLap.addEventListener('click', addLap);
         btnReset.addEventListener('click', reset);
 
-        // Atajos de teclado
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-
-            // Solo en sección de cronómetro activa
-            const cronoSection = document.getElementById('section-cronometro');
-            if (!cronoSection.classList.contains('active')) return;
-
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault();
-                toggleStartStop();
-            }
-            if ((e.key === 'l' || e.key === 'L') && !btnLap.disabled) {
-                addLap();
-            }
-            if (e.key === 'r' || e.key === 'R') {
-                if (!running) reset();
-            }
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            const sec = document.getElementById('section-cronometro');
+            if (!sec || !sec.classList.contains('active')) return;
+            if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); toggle(); }
+            if ((e.key === 'l' || e.key === 'L') && !btnLap.disabled) addLap();
+            if (e.key === 'r' || e.key === 'R') { if (!running) reset(); }
         });
 
-        // Configuración
-        colorInput.addEventListener('input', (e) => {
-            applyColor(e.target.value);
-            saveSettings();
-        });
+        colorInput.addEventListener('input', e => { applyColor(e.target.value); saveSettings(); });
+        sizeRange.addEventListener('input', e => { applySize(e.target.value); saveSettings(); });
 
-        sizeRange.addEventListener('input', (e) => {
-            applySize(e.target.value);
-            saveSettings();
-        });
+        navBtns.forEach(b => b.addEventListener('click', () => switchSection(b.dataset.section)));
 
-        // Sidebar: navegación
-        navBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const section = btn.dataset.section;
-                switchSection(section);
-            });
-        });
+        menuBtn.addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('open'); });
+        overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
 
-        // Menú hamburguesa (móvil)
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('open');
-        });
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
-        });
-
-        // Persistencia al cerrar
         window.addEventListener('beforeunload', saveState);
     }
 
-    // ---- Arranque ----
     document.addEventListener('DOMContentLoaded', init);
 })();
