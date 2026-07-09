@@ -1,0 +1,360 @@
+/* ==============================
+   TempoSnap – Estilos minimalistas
+   ============================== */
+
+:root {
+    --bg: #0b0e14;
+    --surface: #131821;
+    --surface2: #1a212e;
+    --border: #262f3e;
+    --text: #e8edf5;
+    --text-dim: #8892a8;
+    --accent: #00e5ff;
+    --accent-dim: rgba(0, 229, 255, 0.15);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 1rem;
+    line-height: 1.5;
+}
+
+.container {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+/* --- Header --- */
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.logo {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+}
+
+/* --- Días transcurridos --- */
+.days-display {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+    min-height: 1.4em;
+}
+
+/* --- Display principal --- */
+.time-display {
+    font-size: 3.5rem;
+    font-weight: 300;
+    font-family: 'Inter', 'Courier New', monospace;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: var(--accent);
+    background: var(--surface);
+    padding: 1.5rem 0.5rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 40px rgba(0, 229, 255, 0.04);
+    transition: color var(--transition), font-size var(--transition);
+    user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Controles --- */
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background var(--transition), opacity var(--transition), transform 0.15s ease;
+    outline: none;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+.btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-start {
+    background: var(--accent);
+    color: #0b0e14;
+    font-weight: 600;
+}
+
+.btn-start:hover:not(:disabled) {
+    background: #33eaff;
+}
+
+.btn-lap {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-lap:hover:not(:disabled) {
+    background: #263040;
+}
+
+.btn-reset {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+}
+
+.btn-reset:hover {
+    background: var(--surface2);
+    color: var(--text);
+}
+
+/* --- Configuración --- */
+.settings {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.settings-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.setting {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.setting-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.setting-select,
+.setting-color {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.6rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border var(--transition);
+}
+
+.setting-select:focus-visible,
+.setting-color:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.setting-color {
+    width: 48px;
+    height: 36px;
+    padding: 2px;
+}
+
+.size-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.setting-range {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+    cursor: pointer;
+}
+
+.size-value {
+    min-width: 2.2ch;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-align: right;
+}
+
+/* --- Vueltas --- */
+.laps-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+}
+
+.laps-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+}
+
+.laps-count {
+    font-weight: 400;
+    color: var(--text-dim);
+}
+
+.laps-scroll {
+    max-height: 280px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.laps-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.laps-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.laps-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+.laps-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.laps-table th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-dim);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.laps-table td {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(38, 47, 62, 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+.laps-table tr:last-child td {
+    border-bottom: none;
+}
+
+.laps-table .highlight {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.laps-empty {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 1.5rem 0 0.5rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+    body {
+        padding: 1rem 0.75rem;
+    }
+
+    .time-display {
+        font-size: 2.4rem;
+        padding: 1rem 0.25rem;
+    }
+
+    .controls {
+        gap: 0.6rem;
+    }
+
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.6rem 1.25rem;
+    }
+
+    .settings {
+        padding: 1rem;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .laps-section {
+        padding: 1rem;
+    }
+}

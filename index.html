@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TempoSnap · Cronómetro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+    <main class="container">
+        <header class="header">
+            <h1 class="logo">TempoSnap</h1>
+            <p class="subtitle">Cronómetro de precisión</p>
+        </header>
+
+        <!-- Indicador de días (oculto por defecto) -->
+        <div class="days-display" id="daysDisplay" aria-live="polite"></div>
+
+        <!-- Display principal -->
+        <div class="time-display" id="timeDisplay">00:00:00.000</div>
+
+        <!-- Botones -->
+        <div class="controls" role="group" aria-label="Controles del cronómetro">
+            <button class="btn btn-start" id="btnStart" aria-label="Iniciar">Iniciar</button>
+            <button class="btn btn-lap" id="btnLap" disabled aria-label="Registrar vuelta">Vuelta</button>
+            <button class="btn btn-reset" id="btnReset" style="display:none" aria-label="Reiniciar">Reiniciar</button>
+        </div>
+
+        <!-- Configuración -->
+        <section class="settings" aria-label="Configuración">
+            <h2 class="settings-title">Configuración</h2>
+            <div class="settings-grid">
+                <div class="setting">
+                    <label for="precisionSelect" class="setting-label">Precisión</label>
+                    <select id="precisionSelect" class="setting-select">
+                        <option value="3">Milésimas (0.000)</option>
+                        <option value="2">Centésimas (0.00)</option>
+                        <option value="1">Décimas (0.0)</option>
+                        <option value="0">Segundos</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="colorInput" class="setting-label">Color</label>
+                    <input type="color" id="colorInput" class="setting-color" value="#00e5ff" />
+                </div>
+                <div class="setting">
+                    <label for="fontSelect" class="setting-label">Tipografía</label>
+                    <select id="fontSelect" class="setting-select">
+                        <option value="'Inter', sans-serif">Inter (sans-serif)</option>
+                        <option value="'Courier New', monospace">Courier (monoespaciada)</option>
+                        <option value="'Georgia', serif">Georgia (serif)</option>
+                        <option value="'Verdana', sans-serif">Verdana (sans-serif)</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="sizeRange" class="setting-label">Tamaño</label>
+                    <div class="size-row">
+                        <input type="range" id="sizeRange" class="setting-range" min="1.5" max="5" step="0.25" value="3.5" />
+                        <span class="size-value" id="sizeValue">3.5</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabla de vueltas -->
+        <section class="laps-section" aria-label="Vueltas registradas">
+            <h2 class="laps-title">Vueltas <span class="laps-count" id="lapsCount">(0)</span></h2>
+            <div class="laps-scroll">
+                <table class="laps-table" id="lapsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tiempo de vuelta</th>
+                            <th>Tiempo total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lapsBody"></tbody>
+                </table>
+            </div>
+            <p class="laps-empty" id="lapsEmpty">Aún no hay vueltas registradas.</p>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
