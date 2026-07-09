@@ -1,5 +1,5 @@
 /* ==============================
-   TempoSnap – Estilos minimalistas
+   TempoSnap – Estilos completos
    ============================== */
 
 :root {
@@ -8,12 +8,13 @@
     --surface2: #1a212e;
     --border: #262f3e;
     --text: #e8edf5;
-    --text-dim: #8892a8;
+    --text-dim: #6b7a93;
     --accent: #00e5ff;
-    --accent-dim: rgba(0, 229, 255, 0.15);
+    --accent-dim: rgba(0, 229, 255, 0.1);
     --radius: 12px;
     --radius-sm: 8px;
     --transition: 0.2s ease;
+    --sidebar-width: 220px;
 }
 
 *,
@@ -26,76 +27,196 @@
 
 html {
     font-size: 16px;
-    scroll-behavior: smooth;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 2rem 1rem;
+    min-height: 100vh;
     line-height: 1.5;
+    overflow-x: hidden;
 }
 
-.container {
-    width: 100%;
-    max-width: 640px;
-    margin: 0 auto;
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+    transition: transform 0.3s ease;
 }
 
-/* --- Header --- */
-.header {
-    text-align: center;
-    margin-bottom: 2rem;
+.sidebar-header {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
 }
 
-.logo {
-    font-size: 1.75rem;
-    font-weight: 600;
+.sidebar-logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent);
     letter-spacing: -0.02em;
+}
+
+.sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    overflow-y: auto;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+    text-align: left;
+    width: 100%;
+}
+
+.nav-btn:hover {
+    background: var(--surface2);
+    color: var(--text);
+}
+
+.nav-btn.active {
+    background: var(--accent-dim);
     color: var(--accent);
 }
 
-.subtitle {
-    font-size: 0.875rem;
-    color: var(--text-dim);
-    margin-top: 0.25rem;
+.nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-/* --- Días transcurridos --- */
-.days-display {
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--text-dim);
-    margin-bottom: 0.5rem;
-    min-height: 1.4em;
+.sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
 }
 
-/* --- Display principal --- */
+.sidebar-version {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Overlay para móvil */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    padding: 2rem 2.5rem;
+    max-width: 720px;
+}
+
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* ============================================
+   SECCIONES
+   ============================================ */
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+}
+
+/* ============================================
+   DISPLAY DEL CRONÓMETRO
+   ============================================ */
+
 .time-display {
-    font-size: 3.5rem;
+    font-size: 4rem;
     font-weight: 300;
     font-family: 'Inter', 'Courier New', monospace;
     letter-spacing: 0.04em;
     text-align: center;
     color: var(--accent);
     background: var(--surface);
-    padding: 1.5rem 0.5rem;
+    padding: 1.75rem 0.5rem;
     border-radius: var(--radius);
     border: 1px solid var(--border);
-    box-shadow: 0 0 40px rgba(0, 229, 255, 0.04);
+    box-shadow: 0 0 50px rgba(0, 229, 255, 0.035);
     transition: color var(--transition), font-size var(--transition);
     user-select: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-/* --- Controles --- */
+.time-extra {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 0.4rem;
+    min-height: 1.3em;
+}
+
+/* ============================================
+   CONTROLES
+   ============================================ */
+
 .controls {
     display: flex;
     justify-content: center;
@@ -108,7 +229,7 @@ body {
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     font-weight: 500;
-    padding: 0.75rem 2rem;
+    padding: 0.7rem 2rem;
     border: none;
     border-radius: 50px;
     cursor: pointer;
@@ -126,7 +247,7 @@ body {
 }
 
 .btn:disabled {
-    opacity: 0.35;
+    opacity: 0.3;
     cursor: not-allowed;
     transform: none;
 }
@@ -162,28 +283,29 @@ body {
     color: var(--text);
 }
 
-/* --- Configuración --- */
+/* Botón "Parar" se controla desde JS con estilo inline */
+.btn-stop {
+    background: #ff4757 !important;
+    color: #fff !important;
+}
+
+/* ============================================
+   CONFIGURACIÓN
+   ============================================ */
+
 .settings {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     margin-bottom: 2rem;
 }
 
-.settings-title {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-dim);
-    margin-bottom: 1rem;
-}
-
-.settings-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
+.settings-row {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
 }
 
 .setting {
@@ -193,36 +315,26 @@ body {
 }
 
 .setting-label {
-    font-size: 0.75rem;
-    font-weight: 500;
+    font-size: 0.7rem;
+    font-weight: 600;
     color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
 }
 
-.setting-select,
 .setting-color {
     background: var(--surface2);
-    color: var(--text);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 0.45rem 0.6rem;
-    font-size: 0.875rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: border var(--transition);
-}
-
-.setting-select:focus-visible,
-.setting-color:focus-visible {
-    border-color: var(--accent);
-    outline: none;
-}
-
-.setting-color {
     width: 48px;
     height: 36px;
     padding: 2px;
+    cursor: pointer;
+}
+
+.setting-color:focus-visible {
+    border-color: var(--accent);
+    outline: none;
 }
 
 .size-row {
@@ -236,46 +348,60 @@ body {
     accent-color: var(--accent);
     height: 4px;
     cursor: pointer;
+    min-width: 100px;
 }
 
 .size-value {
-    min-width: 2.2ch;
+    min-width: 2.5ch;
     font-size: 0.85rem;
     color: var(--text-dim);
     text-align: right;
 }
 
-/* --- Vueltas --- */
+/* ============================================
+   VUELTAS
+   ============================================ */
+
 .laps-section {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
+}
+
+.laps-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .laps-title {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-dim);
-    margin-bottom: 0.75rem;
 }
 
 .laps-count {
-    font-weight: 400;
-    color: var(--text-dim);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
 }
 
 .laps-scroll {
-    max-height: 280px;
+    max-height: 220px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
 }
 
 .laps-scroll::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
 }
 
 .laps-scroll::-webkit-scrollbar-track {
@@ -297,16 +423,16 @@ body {
     text-align: left;
     font-weight: 500;
     color: var(--text-dim);
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
     border-bottom: 1px solid var(--border);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
 
 .laps-table td {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(38, 47, 62, 0.5);
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(38, 47, 62, 0.4);
     font-variant-numeric: tabular-nums;
 }
 
@@ -321,20 +447,67 @@ body {
 
 .laps-empty {
     color: var(--text-dim);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     text-align: center;
-    padding: 1.5rem 0 0.5rem;
+    padding: 1.5rem 0 0.25rem;
 }
 
-/* --- Responsive --- */
-@media (max-width: 480px) {
-    body {
-        padding: 1rem 0.75rem;
+/* ============================================
+   PLACEHOLDER (temporizador, alarma, reloj)
+   ============================================ */
+
+.placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    gap: 1rem;
+}
+
+.placeholder-icon {
+    color: var(--text-dim);
+    opacity: 0.4;
+}
+
+.placeholder-text {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.open {
+        display: block;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1.25rem;
     }
 
     .time-display {
-        font-size: 2.4rem;
-        padding: 1rem 0.25rem;
+        font-size: 2.8rem;
+        padding: 1.25rem 0.25rem;
     }
 
     .controls {
@@ -346,15 +519,17 @@ body {
         padding: 0.6rem 1.25rem;
     }
 
-    .settings {
-        padding: 1rem;
+    .settings-row {
+        gap: 1.25rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .time-display {
+        font-size: 2.2rem;
     }
 
-    .settings-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .laps-section {
-        padding: 1rem;
+    .main-content {
+        padding: 0.75rem;
     }
 }

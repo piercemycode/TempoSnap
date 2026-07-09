@@ -3,86 +3,175 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TempoSnap · Cronómetro</title>
+    <title>TempoSnap</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-    <main class="container">
-        <header class="header">
-            <h1 class="logo">TempoSnap</h1>
-            <p class="subtitle">Cronómetro de precisión</p>
-        </header>
-
-        <!-- Indicador de días (oculto por defecto) -->
-        <div class="days-display" id="daysDisplay" aria-live="polite"></div>
-
-        <!-- Display principal -->
-        <div class="time-display" id="timeDisplay">00:00:00.000</div>
-
-        <!-- Botones -->
-        <div class="controls" role="group" aria-label="Controles del cronómetro">
-            <button class="btn btn-start" id="btnStart" aria-label="Iniciar">Iniciar</button>
-            <button class="btn btn-lap" id="btnLap" disabled aria-label="Registrar vuelta">Vuelta</button>
-            <button class="btn btn-reset" id="btnReset" style="display:none" aria-label="Reiniciar">Reiniciar</button>
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1 class="sidebar-logo">TempoSnap</h1>
         </div>
 
-        <!-- Configuración -->
-        <section class="settings" aria-label="Configuración">
-            <h2 class="settings-title">Configuración</h2>
-            <div class="settings-grid">
-                <div class="setting">
-                    <label for="precisionSelect" class="setting-label">Precisión</label>
-                    <select id="precisionSelect" class="setting-select">
-                        <option value="3">Milésimas (0.000)</option>
-                        <option value="2">Centésimas (0.00)</option>
-                        <option value="1">Décimas (0.0)</option>
-                        <option value="0">Segundos</option>
-                    </select>
-                </div>
-                <div class="setting">
-                    <label for="colorInput" class="setting-label">Color</label>
-                    <input type="color" id="colorInput" class="setting-color" value="#00e5ff" />
-                </div>
-                <div class="setting">
-                    <label for="fontSelect" class="setting-label">Tipografía</label>
-                    <select id="fontSelect" class="setting-select">
-                        <option value="'Inter', sans-serif">Inter (sans-serif)</option>
-                        <option value="'Courier New', monospace">Courier (monoespaciada)</option>
-                        <option value="'Georgia', serif">Georgia (serif)</option>
-                        <option value="'Verdana', sans-serif">Verdana (sans-serif)</option>
-                    </select>
-                </div>
-                <div class="setting">
-                    <label for="sizeRange" class="setting-label">Tamaño</label>
-                    <div class="size-row">
-                        <input type="range" id="sizeRange" class="setting-range" min="1.5" max="5" step="0.25" value="3.5" />
-                        <span class="size-value" id="sizeValue">3.5</span>
+        <nav class="sidebar-nav" aria-label="Navegación principal">
+            <button class="nav-btn active" data-section="cronometro" aria-label="Cronómetro">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Cronómetro</span>
+            </button>
+
+            <button class="nav-btn" data-section="temporizador" aria-label="Temporizador">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 2h4"/><path d="M12 14v-4"/><path d="M4 13a8 8 0 0 1 8-7 8 8 0 1 1-8 7z"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Temporizador</span>
+            </button>
+
+            <button class="nav-btn" data-section="alarma" aria-label="Alarma">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 4h.01"/><path d="M10 4h.01"/><path d="M14 4h.01"/><path d="M18 4h.01"/><path d="M4 8h16"/><path d="M4 12h16"/><path d="M4 16h16"/><path d="M4 20h16"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Alarma</span>
+            </button>
+
+            <button class="nav-btn" data-section="reloj" aria-label="Reloj">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Reloj</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span class="sidebar-version">v1.0</span>
+        </div>
+    </aside>
+
+    <!-- ===== OVERLAY (móvil) ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- Botón hamburguesa para móvil -->
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+
+        <!-- ===== SECCIÓN: CRONÓMETRO ===== -->
+        <section class="section active" id="section-cronometro">
+            <div class="section-header">
+                <h2 class="section-title">Cronómetro</h2>
+                <p class="section-subtitle">Precisión de centésimas</p>
+            </div>
+
+            <div class="time-display" id="timeDisplay">00:00.00</div>
+
+            <!-- Indicador de horas/minutos cuando supere 59:59 -->
+            <div class="time-extra" id="timeExtra"></div>
+
+            <div class="controls" role="group" aria-label="Controles del cronómetro">
+                <button class="btn btn-start" id="btnStart">Iniciar</button>
+                <button class="btn btn-lap" id="btnLap" disabled>Vuelta</button>
+                <button class="btn btn-reset" id="btnReset" style="display:none">Reiniciar</button>
+            </div>
+
+            <!-- Configuración -->
+            <div class="settings">
+                <div class="settings-row">
+                    <div class="setting">
+                        <label for="colorInput" class="setting-label">Color</label>
+                        <input type="color" id="colorInput" class="setting-color" value="#00e5ff" />
+                    </div>
+                    <div class="setting">
+                        <label for="sizeRange" class="setting-label">Tamaño</label>
+                        <div class="size-row">
+                            <input type="range" id="sizeRange" class="setting-range" min="2" max="6" step="0.25" value="4" />
+                            <span class="size-value" id="sizeValue">4.0</span>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Vueltas -->
+            <div class="laps-section">
+                <div class="laps-header">
+                    <h3 class="laps-title">Vueltas</h3>
+                    <span class="laps-count" id="lapsCount">0</span>
+                </div>
+                <div class="laps-scroll">
+                    <table class="laps-table" id="lapsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Vuelta</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lapsBody"></tbody>
+                    </table>
+                </div>
+                <p class="laps-empty" id="lapsEmpty">Aún no hay vueltas registradas.</p>
+            </div>
         </section>
 
-        <!-- Tabla de vueltas -->
-        <section class="laps-section" aria-label="Vueltas registradas">
-            <h2 class="laps-title">Vueltas <span class="laps-count" id="lapsCount">(0)</span></h2>
-            <div class="laps-scroll">
-                <table class="laps-table" id="lapsTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Tiempo de vuelta</th>
-                            <th>Tiempo total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lapsBody"></tbody>
-                </table>
+        <!-- ===== SECCIÓN: TEMPORIZADOR (placeholder) ===== -->
+        <section class="section" id="section-temporizador">
+            <div class="section-header">
+                <h2 class="section-title">Temporizador</h2>
+                <p class="section-subtitle">Cuenta regresiva</p>
             </div>
-            <p class="laps-empty" id="lapsEmpty">Aún no hay vueltas registradas.</p>
+            <div class="placeholder-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="placeholder-icon">
+                    <path d="M10 2h4"/><path d="M12 14v-4"/><path d="M4 13a8 8 0 0 1 8-7 8 8 0 1 1-8 7z"/>
+                </svg>
+                <p class="placeholder-text">Próximamente</p>
+            </div>
         </section>
+
+        <!-- ===== SECCIÓN: ALARMA (placeholder) ===== -->
+        <section class="section" id="section-alarma">
+            <div class="section-header">
+                <h2 class="section-title">Alarma</h2>
+                <p class="section-subtitle">Despertador inteligente</p>
+            </div>
+            <div class="placeholder-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="placeholder-icon">
+                    <path d="M6 4h.01"/><path d="M10 4h.01"/><path d="M14 4h.01"/><path d="M18 4h.01"/><path d="M4 8h16"/><path d="M4 12h16"/><path d="M4 16h16"/><path d="M4 20h16"/>
+                </svg>
+                <p class="placeholder-text">Próximamente</p>
+            </div>
+        </section>
+
+        <!-- ===== SECCIÓN: RELOJ (placeholder) ===== -->
+        <section class="section" id="section-reloj">
+            <div class="section-header">
+                <h2 class="section-title">Reloj</h2>
+                <p class="section-subtitle">Hora actual</p>
+            </div>
+            <div class="placeholder-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="placeholder-icon">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <p class="placeholder-text">Próximamente</p>
+            </div>
+        </section>
+
     </main>
 
     <script src="app.js"></script>

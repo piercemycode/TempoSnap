@@ -1,5 +1,5 @@
 /* ==============================
-   TempoSnap – Lógica del cronómetro
+   TempoSnap – Lógica completa
    ============================== */
 
 (function () {
@@ -7,28 +7,32 @@
 
     // ---- Referencias DOM ----
     const timeDisplay = document.getElementById('timeDisplay');
-    const daysDisplay = document.getElementById('daysDisplay');
+    const timeExtra = document.getElementById('timeExtra');
     const btnStart = document.getElementById('btnStart');
     const btnLap = document.getElementById('btnLap');
     const btnReset = document.getElementById('btnReset');
     const lapsBody = document.getElementById('lapsBody');
     const lapsEmpty = document.getElementById('lapsEmpty');
     const lapsCount = document.getElementById('lapsCount');
-    const precisionSelect = document.getElementById('precisionSelect');
     const colorInput = document.getElementById('colorInput');
-    const fontSelect = document.getElementById('fontSelect');
     const sizeRange = document.getElementById('sizeRange');
     const sizeValue = document.getElementById('sizeValue');
 
-    // ---- Estado interno ----
-    let startTime = null;          // timestamp de la última reanudación
-    let accumulated = 0;          // ms acumulados antes de la última pausa
+    // Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuToggle = document.getElementById('menuToggle');
+    const navBtns = document.querySelectorAll('.nav-btn');
+
+    // ---- Estado del cronómetro ----
+    let startTime = null;
+    let accumulated = 0;
     let running = false;
     let intervalId = null;
-    let laps = [];                // { lapTime, totalTime }
+    let laps = [];
 
-    // ---- Constantes de almacenamiento ----
     const STORAGE_KEY = 'temposnap_state';
+    const SETTINGS_KEY = 'temposnap_settings';
 
     // ---- Inicialización ----
     function init() {
@@ -38,58 +42,56 @@
     }
 
     // ================================================================
-    //  GESTIÓN DEL TIEMPO
+    //  GESTIÓN DEL TIEMPO (formato MM:SS.cc)
     // ================================================================
 
     function now() {
         return performance.now();
     }
 
-    /** Devuelve los ms totales transcurridos (incluyendo lo acumulado) */
     function elapsed() {
         if (!startTime) return accumulated;
         return accumulated + (now() - startTime);
     }
 
-    function formatTime(ms, precision) {
-        if (precision === undefined) precision = getPrecision();
-
+    /**
+     * Formatea como MM:SS.cc (minutos:segundos.centésimas)
+     * Si es >= 1 hora, muestra HH:MM:SS.cc
+     */
+    function formatTime(ms) {
         const totalMs = Math.max(0, ms);
-        const totalSeconds = Math.floor(totalMs / 1000);
+        const totalSec = Math.floor(totalMs / 1000);
 
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const secs = totalSeconds % 60;
-        const frac = totalMs % 1000;
+        const hours = Math.floor(totalSec / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const secs = totalSec % 60;
+        const centesimas = Math.floor((totalMs % 1000) / 10);
 
-        let fractionalPart;
-        switch (precision) {
-            case 0: fractionalPart = ''; break;
-            case 1: fractionalPart = '.' + String(Math.floor(frac / 100)); break;
-            case 2: fractionalPart = '.' + String(Math.floor(frac / 10)).padStart(2, '0'); break;
-            default:
-            case 3: fractionalPart = '.' + String(Math.floor(frac)).padStart(3, '0'); break;
+        let time;
+        if (hours > 0) {
+            time = String(hours).padStart(2, '0') + ':' +
+                   String(minutes).padStart(2, '0') + ':' +
+                   String(secs).padStart(2, '0') + '.' +
+                   String(centesimas).padStart(2, '0');
+        } else {
+            time = String(minutes).padStart(2, '0') + ':' +
+                   String(secs).padStart(2, '0') + '.' +
+                   String(centesimas).padStart(2, '0');
         }
 
-        const time = [
-            String(hours).padStart(2, '0'),
-            String(minutes).padStart(2, '0'),
-            String(secs).padStart(2, '0')
-        ].join(':') + fractionalPart;
-
-        return { time, days };
+        return { time, hours, minutes };
     }
 
     function renderDisplay() {
         const ms = elapsed();
-        const { time, days } = formatTime(ms);
+        const { time, hours } = formatTime(ms);
+
         timeDisplay.textContent = time;
 
-        if (days > 0) {
-            daysDisplay.textContent = `${days} día${days > 1 ? 's' : ''} transcurrido${days > 1 ? 's' : ''}`;
+        if (hours > 0) {
+            timeExtra.textContent = hours + ' hora' + (hours > 1 ? 's' : '') + ' transcurrida' + (hours > 1 ? 's' : '');
         } else {
-            daysDisplay.textContent = '';
+            timeExtra.textContent = '';
         }
     }
 
@@ -97,12 +99,16 @@
         renderDisplay();
     }
 
+    // ================================================================
+    //  ACCIONES DEL CRONÓMETRO
+    // ================================================================
+
     function start() {
         if (running) return;
         running = true;
         startTime = now();
 
-        intervalId = setInterval(tick, 16); // ~60 fps
+        intervalId = setInterval(tick, 16);
 
         btnStart.textContent = 'Parar';
         btnStart.classList.remove('btn-start');
@@ -129,7 +135,7 @@
         btnStart.style.background = '';
         btnStart.style.color = '';
         btnLap.disabled = true;
-        btnReset.style.display = '';
+        btnReset.style.display = accumulated > 0 ? '' : 'none';
 
         saveState();
     }
@@ -142,16 +148,12 @@
         renderDisplay();
         renderLaps();
         saveState();
-
         btnReset.style.display = 'none';
     }
 
     function toggleStartStop() {
-        if (running) {
-            stop();
-        } else {
-            start();
-        }
+        if (running) stop();
+        else start();
     }
 
     // ================================================================
@@ -175,14 +177,13 @@
 
         if (laps.length === 0) {
             lapsEmpty.style.display = '';
-            lapsCount.textContent = '(0)';
+            lapsCount.textContent = '0';
             return;
         }
 
         lapsEmpty.style.display = 'none';
-        lapsCount.textContent = `(${laps.length})`;
+        lapsCount.textContent = String(laps.length);
 
-        const precision = getPrecision();
         const fragment = document.createDocumentFragment();
 
         laps.forEach((lap, i) => {
@@ -192,11 +193,11 @@
             tdIndex.textContent = i + 1;
 
             const tdLap = document.createElement('td');
-            tdLap.textContent = formatTime(lap.lapTime, precision).time;
+            tdLap.textContent = formatTime(lap.lapTime).time;
             if (i === laps.length - 1) tdLap.classList.add('highlight');
 
             const tdTotal = document.createElement('td');
-            tdTotal.textContent = formatTime(lap.totalTime, precision).time;
+            tdTotal.textContent = formatTime(lap.totalTime).time;
 
             tr.appendChild(tdIndex);
             tr.appendChild(tdLap);
@@ -206,7 +207,6 @@
 
         lapsBody.appendChild(fragment);
 
-        // Scroll automático al fondo
         const scrollContainer = lapsBody.closest('.laps-scroll');
         if (scrollContainer) {
             scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -217,63 +217,59 @@
     //  CONFIGURACIÓN
     // ================================================================
 
-    function getPrecision() {
-        return parseInt(precisionSelect.value, 10);
-    }
-
     function applyColor(color) {
         document.documentElement.style.setProperty('--accent', color);
         timeDisplay.style.color = color;
-        document.querySelector('.logo').style.color = color;
-    }
-
-    function applyFont(font) {
-        timeDisplay.style.fontFamily = `'Inter', ${font}`;
+        document.querySelector('.sidebar-logo').style.color = color;
+        document.querySelectorAll('.nav-btn.active').forEach(el => {
+            el.style.color = color;
+        });
     }
 
     function applySize(size) {
         timeDisplay.style.fontSize = size + 'rem';
-        sizeValue.textContent = size;
+        sizeValue.textContent = parseFloat(size).toFixed(1);
     }
 
     function loadSettings() {
         try {
-            const saved = JSON.parse(localStorage.getItem('temposnap_settings'));
+            const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
             if (!saved) return;
 
-            if (saved.precision) precisionSelect.value = saved.precision;
-            if (saved.color) { colorInput.value = saved.color; applyColor(saved.color); }
-            if (saved.font) { fontSelect.value = saved.font; applyFont(saved.font); }
-            if (saved.size) { sizeRange.value = saved.size; applySize(saved.size); }
-        } catch (_) { /* ignorar */ }
+            if (saved.color) {
+                colorInput.value = saved.color;
+                applyColor(saved.color);
+            }
+            if (saved.size) {
+                sizeRange.value = saved.size;
+                applySize(saved.size);
+            }
+        } catch (_) {}
     }
 
     function saveSettings() {
         const data = {
-            precision: precisionSelect.value,
             color: colorInput.value,
-            font: fontSelect.value,
             size: sizeRange.value
         };
         try {
-            localStorage.setItem('temposnap_settings', JSON.stringify(data));
-        } catch (_) { /* ignorar */ }
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
+        } catch (_) {}
     }
 
     // ================================================================
-    //  PERSISTENCIA DE ESTADO (vueltas + tiempo al cerrar)
+    //  PERSISTENCIA DE ESTADO
     // ================================================================
 
     function saveState() {
         const data = {
             accumulated: running ? elapsed() : accumulated,
-            running: false,  // al recargar siempre arranca detenido
-            laps: laps,
-            precision: precisionSelect.value
+            running: false,
+            laps: laps
         };
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (_) { /* ignorar */ }
+        } catch (_) {}
     }
 
     function restoreState() {
@@ -285,7 +281,6 @@
             accumulated = data.accumulated || 0;
             laps = data.laps || [];
 
-            // Forzar que arranque detenido
             running = false;
             startTime = null;
             if (intervalId) {
@@ -294,6 +289,8 @@
             }
 
             btnStart.textContent = 'Iniciar';
+            btnStart.classList.add('btn-start');
+            btnStart.classList.remove('btn-stop');
             btnStart.style.background = '';
             btnStart.style.color = '';
             btnLap.disabled = true;
@@ -301,7 +298,30 @@
 
             renderDisplay();
             renderLaps();
-        } catch (_) { /* ignorar */ }
+        } catch (_) {}
+    }
+
+    // ================================================================
+    //  NAVEGACIÓN ENTRE SECCIONES (Sidebar)
+    // ================================================================
+
+    function switchSection(sectionId) {
+        // Ocultar todas las secciones
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+        // Desactivar todos los botones
+        navBtns.forEach(btn => btn.classList.remove('active'));
+
+        // Activar la sección correspondiente
+        const targetSection = document.getElementById('section-' + sectionId);
+        const targetBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
+
+        if (targetSection) targetSection.classList.add('active');
+        if (targetBtn) targetBtn.classList.add('active');
+
+        // Cerrar sidebar en móvil
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
     }
 
     // ================================================================
@@ -309,14 +329,19 @@
     // ================================================================
 
     function bindEvents() {
-        // Botones principales
+        // Botones del cronómetro
         btnStart.addEventListener('click', toggleStartStop);
         btnLap.addEventListener('click', addLap);
         btnReset.addEventListener('click', reset);
 
-        // Teclado: espacio para iniciar/parar
+        // Atajos de teclado
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+            // Solo en sección de cronómetro activa
+            const cronoSection = document.getElementById('section-cronometro');
+            if (!cronoSection.classList.contains('active')) return;
+
             if (e.key === ' ' || e.key === 'Spacebar') {
                 e.preventDefault();
                 toggleStartStop();
@@ -330,19 +355,8 @@
         });
 
         // Configuración
-        precisionSelect.addEventListener('change', () => {
-            renderDisplay();
-            renderLaps();
-            saveSettings();
-        });
-
         colorInput.addEventListener('input', (e) => {
             applyColor(e.target.value);
-            saveSettings();
-        });
-
-        fontSelect.addEventListener('change', (e) => {
-            applyFont(e.target.value);
             saveSettings();
         });
 
@@ -351,16 +365,29 @@
             saveSettings();
         });
 
-        // Guardar estado al cerrar/recargar
-        window.addEventListener('beforeunload', saveState);
+        // Sidebar: navegación
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.dataset.section;
+                switchSection(section);
+            });
+        });
 
-        // También guardamos cuando se detiene o se añade vuelta
-        // (ya se hace en start/stop/addLap/reset)
+        // Menú hamburguesa (móvil)
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        });
+
+        // Persistencia al cerrar
+        window.addEventListener('beforeunload', saveState);
     }
 
-    // ================================================================
-    //  ARRANQUE
-    // ================================================================
-
+    // ---- Arranque ----
     document.addEventListener('DOMContentLoaded', init);
 })();
